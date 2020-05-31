@@ -35,15 +35,15 @@ string LinuxParser::OperatingSystem() {
 
 // DONE: An example of how to read data from the filesystem
 string LinuxParser::Kernel() {
-  string os, kernel;
+  string os, kernel, version;
   string line;
   std::ifstream stream(kProcDirectory + kVersionFilename);
   if (stream.is_open()) {
     std::getline(stream, line);
     std::istringstream linestream(line);
-    linestream >> os >> kernel;
+    linestream >> os >> kernel >> version;
   }
-  return kernel;
+  return version;
 }
 
 // BONUS: Update this to use std::filesystem
@@ -66,11 +66,40 @@ vector<int> LinuxParser::Pids() {
   return pids;
 }
 
-// TODO: Read and return the system memory utilization
-float LinuxParser::MemoryUtilization() { return 0.0; }
+// DONE: Read and return the system memory utilization
+float LinuxParser::MemoryUtilization() {
+  float memTotal, memFree, memUtilized;
+  string line, label, value; 
+  std::ifstream stream(kProcDirectory + kMeminfoFilename);
+  if(stream.is_open()){
+    while(std::getline(stream, line)) {
+      std::istringstream linestream(line);
+      linestream >> label >> value;
+      if(label == "MemTotal:") {
+        memTotal = std::stof(value);
+      } 
+      else if(label == "MemFree:") {
+        memFree = std::stof(value);
+      }
+    }
+  }
+  memUtilized = (memTotal - memFree) / memTotal;
+  return memUtilized; 
+}
 
-// TODO: Read and return the system uptime
-long LinuxParser::UpTime() { return 0; }
+// DONE: Read and return the system uptime
+long LinuxParser::UpTime() { 
+  string line, uptime;
+  long uptimeVal;
+  std::ifstream stream(kProcDirectory + kUptimeFilename);
+  if(stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream >> uptime;
+    uptimeVal = std::stol(uptime);
+  }
+  return uptimeVal; 
+}
 
 // TODO: Read and return the number of jiffies for the system
 long LinuxParser::Jiffies() { return 0; }
@@ -80,7 +109,17 @@ long LinuxParser::Jiffies() { return 0; }
 long LinuxParser::ActiveJiffies(int pid[[maybe_unused]]) { return 0; }
 
 // TODO: Read and return the number of active jiffies for the system
-long LinuxParser::ActiveJiffies() { return 0; }
+long LinuxParser::ActiveJiffies() { 
+  long user, nice, system;
+  string line;
+  std::ifstream stream(kProcDirectory + kStatFilename);
+  if(stream.is_open()) {
+    std::getline(stream, line);
+    std::istringstream linestream(line);
+    linestream << user << nice << system;
+  }
+  return 0;
+ }
 
 // TODO: Read and return the number of idle jiffies for the system
 long LinuxParser::IdleJiffies() { return 0; }
