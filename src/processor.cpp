@@ -1,12 +1,15 @@
 #include "processor.h"
 #include "linux_parser.h"
+#include <unistd.h>
 
-// TODO: Return the aggregate CPU utilization
+// DONE: Return the aggregate CPU utilization
+// ADDED: calculate CPU utilization dynamically
 float Processor::Utilization() { 
-    long currentTotal = LinuxParser::Jiffies();
+    long currentTotal = LinuxParser::UpTime();
     long currentActive = LinuxParser::ActiveJiffies();
-    float utilization = (currentActive - prevActiveJiffie_)/(currentTotal - prevJiffie_);
-    prevJiffie_ = currentTotal;
-    prevActiveJiffie_ = currentActive;
+    long clock = sysconf(_SC_CLK_TCK);
+    float utilization = ((float)(currentActive - prevActive_)/clock)/(currentTotal - prevTotal_);
+    prevTotal_ = currentTotal; //store current values in Processor struct
+    prevActive_ = currentActive;
     return utilization;
 }
